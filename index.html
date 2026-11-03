@@ -271,6 +271,88 @@
         line-height: 1.6;
       }
 
+      .review-toggle-wrap {
+        margin: 0 auto 18px;
+      }
+
+      .review-toggle-btn {
+        border: 1px solid rgba(126, 231, 255, 0.45);
+        background: rgba(126, 231, 255, 0.08);
+        color: var(--text);
+        font-weight: 700;
+        font-size: 0.98rem;
+        padding: 12px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .review-toggle-btn:hover,
+      .review-toggle-btn:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(126, 231, 255, 0.9);
+        box-shadow: 0 0 0 4px rgba(126, 231, 255, 0.18);
+        outline: none;
+      }
+
+      .review-panel {
+        text-align: left;
+        margin: 0 auto 18px;
+        max-width: 680px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        padding: 18px 16px;
+      }
+
+      .review-panel[hidden] {
+        display: none;
+      }
+
+      .review-panel h3 {
+        margin: 0 0 14px;
+        font-size: 1.2rem;
+      }
+
+      .review-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .review-item {
+        background: rgba(124, 156, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+
+      .review-item strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary-2);
+      }
+
+      .review-item p {
+        margin: 0 0 6px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .review-status {
+        font-weight: 700;
+      }
+
+      .review-status.correct {
+        color: var(--success);
+      }
+
+      .review-status.incorrect {
+        color: var(--danger);
+      }
+
       .restart-btn {
         border: none;
         background: linear-gradient(135deg, var(--primary), var(--primary-2));
@@ -319,18 +401,18 @@
     <main class="quiz-shell" aria-live="polite">
       <header class="topbar">
         <div class="status-row">
-          <div class="badge">Mission Control</div>
-          <div class="score" id="scoreCounter" aria-live="polite">Score: 0</div>
+          <div class="badge">미션 컨트롤</div>
+          <div class="score" id="scoreCounter" aria-live="polite">점수: 0</div>
         </div>
-        <div class="progress-track" aria-label="Quiz progress">
+        <div class="progress-track" aria-label="퀴즈 진행률">
           <div class="progress-fill" id="progressFill"></div>
         </div>
       </header>
 
       <section class="content">
         <div class="quiz-panel" id="quizPanel">
-          <div class="question-meta" id="questionMeta">Question 1 of 10</div>
-          <h1 id="questionText">Loading question...</h1>
+          <div class="question-meta" id="questionMeta">문제 1 / 10</div>
+          <h1 id="questionText">문제를 불러오는 중...</h1>
 
           <div class="answers" id="answers" role="list"></div>
           <div id="feedback" class="feedback" aria-live="assertive"></div>
@@ -338,10 +420,20 @@
 
         <div class="result-panel" id="resultPanel" aria-live="polite">
           <div class="result-emoji" id="resultEmoji">🚀</div>
-          <h2 id="resultTitle">Mission Complete</h2>
+          <h2 id="resultTitle">미션 완료</h2>
           <div class="result-score"><strong id="finalScore">0</strong> / 10</div>
-          <p class="result-message" id="resultMessage">You completed the space exploration quiz.</p>
-          <button class="restart-btn" id="restartBtn" type="button">Play Again</button>
+          <p class="result-message" id="resultMessage">우주 탐사 퀴즈를 끝냈습니다.</p>
+
+          <div class="review-toggle-wrap">
+            <button class="review-toggle-btn" id="reviewToggleBtn" type="button" aria-expanded="false">답안 다시 보기</button>
+          </div>
+
+          <div class="review-panel" id="reviewPanel" hidden aria-live="polite">
+            <h3>답안 복기</h3>
+            <ul class="review-list" id="reviewList"></ul>
+          </div>
+
+          <button class="restart-btn" id="restartBtn" type="button">다시 하기</button>
         </div>
       </section>
     </main>
@@ -349,54 +441,54 @@
     <script>
       const questions = [
         {
-          question: 'Which planet is known as the Red Planet?',
-          options: ['Venus', 'Mars', 'Jupiter', 'Mercury'],
-          answer: 'Mars'
+          question: '붉은 행성으로 알려진 행성은 무엇인가요?',
+          options: ['금성', '화성', '목성', '수성'],
+          answer: '화성'
         },
         {
-          question: 'What is the name of Earth\'s natural satellite?',
-          options: ['Titan', 'Europa', 'Moon', 'Ganymede'],
-          answer: 'Moon'
+          question: '지구의 자연 위성 이름은 무엇인가요?',
+          options: ['타이탄', '유로파', '달', '가니메데'],
+          answer: '달'
         },
         {
-          question: 'Which spacecraft was the first to land on the Moon?',
-          options: ['Apollo 11', 'Voyager 1', 'Sputnik 1', 'Hubble'],
-          answer: 'Apollo 11'
+          question: '달에 첫으로 착륙한 우주선은 무엇인가요?',
+          options: ['아폴로 11호', '보이저 1호', '스푸트니크 1호', '허블'],
+          answer: '아폴로 11호'
         },
         {
-          question: 'What force keeps planets in orbit around the Sun?',
-          options: ['Magnetism', 'Gravity', 'Radiation', 'Friction'],
-          answer: 'Gravity'
+          question: '태양 주위를 도는 행성을 유지하는 힘은 무엇인가요?',
+          options: ['자력', '중력', '복사선', '마찰력'],
+          answer: '중력'
         },
         {
-          question: 'Which planet has the most prominent rings?',
-          options: ['Saturn', 'Neptune', 'Mars', 'Earth'],
-          answer: 'Saturn'
+          question: '가장 두드러진 고리를 가진 행성은 무엇인가요?',
+          options: ['토성', '해왕성', '화성', '지구'],
+          answer: '토성'
         },
         {
-          question: 'What is the name of the galaxy that contains our Solar System?',
-          options: ['Andromeda', 'Whirlpool', 'Milky Way', 'Sombrero'],
-          answer: 'Milky Way'
+          question: '우리 태양계가 속한 은하의 이름은 무엇인가요?',
+          options: ['안드로메다', '소용돌이 은하', '은하수', '솜브레로 은하'],
+          answer: '은하수'
         },
         {
-          question: 'Which planet is the hottest in our Solar System?',
-          options: ['Venus', 'Mercury', 'Mars', 'Jupiter'],
-          answer: 'Venus'
+          question: '우리 태양계에서 가장 뜨거운 행성은 무엇인가요?',
+          options: ['금성', '수성', '화성', '목성'],
+          answer: '금성'
         },
         {
-          question: 'What do astronauts use to breathe in space?',
-          options: ['Oxygen tanks', 'Helium balloons', 'Water filters', 'Solar panels'],
-          answer: 'Oxygen tanks'
+          question: '우주에서 숨을 쉬기 위해 우주인이 사용하는 것은 무엇인가요?',
+          options: ['산소 탱크', '헬륨 풍선', '물 필터', '태양 전지판'],
+          answer: '산소 탱크'
         },
         {
-          question: 'Which space telescope was launched in 1990 and changed astronomy?',
-          options: ['Spitzer', 'Hubble', 'Kepler', 'JWST'],
-          answer: 'Hubble'
+          question: '1990년에 발사되어 천문학을 바꾼 우주 망원경은 무엇인가요?',
+          options: ['스피처', '허블', '케플러', '제임스 웹'],
+          answer: '허블'
         },
         {
-          question: 'What is the largest planet in our Solar System?',
-          options: ['Neptune', 'Saturn', 'Jupiter', 'Uranus'],
-          answer: 'Jupiter'
+          question: '우리 태양계에서 가장 큰 행성은 무엇인가요?',
+          options: ['해왕성', '토성', '목성', '천왕성'],
+          answer: '목성'
         }
       ];
 
@@ -412,10 +504,14 @@
       const resultTitle = document.getElementById('resultTitle');
       const resultEmoji = document.getElementById('resultEmoji');
       const resultMessage = document.getElementById('resultMessage');
+      const reviewToggleBtn = document.getElementById('reviewToggleBtn');
+      const reviewPanel = document.getElementById('reviewPanel');
+      const reviewList = document.getElementById('reviewList');
       const restartBtn = document.getElementById('restartBtn');
 
       let currentQuestionIndex = 0;
       let score = 0;
+      let selectedAnswers = Array(questions.length).fill(null);
 
       function updateProgress() {
         const percent = ((currentQuestionIndex) / questions.length) * 100;
@@ -423,7 +519,7 @@
       }
 
       function updateScore() {
-        scoreCounter.textContent = `Score: ${score}`;
+        scoreCounter.textContent = `점수: ${score}`;
       }
 
       function showFeedback(isCorrect, message) {
@@ -439,7 +535,7 @@
 
       function loadQuestion() {
         const currentQuestion = questions[currentQuestionIndex];
-        questionMeta.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        questionMeta.textContent = `문제 ${currentQuestionIndex + 1} / ${questions.length}`;
         questionText.textContent = currentQuestion.question;
         answersEl.innerHTML = '';
         feedbackEl.classList.remove('show', 'correct', 'incorrect');
@@ -460,6 +556,8 @@
       }
 
       function handleAnswer(button, selectedOption, correctAnswer) {
+        selectedAnswers[currentQuestionIndex] = selectedOption;
+
         const allButtons = Array.from(document.querySelectorAll('.option'));
         allButtons.forEach((btn) => {
           btn.disabled = true;
@@ -474,10 +572,10 @@
           score += 1;
           updateScore();
           button.classList.add('correct');
-          showFeedback(true, 'Correct! Excellent work.');
+          showFeedback(true, '맞았습니다! 훌륭해요.');
         } else {
           button.classList.add('incorrect');
-          showFeedback(false, `Not quite. The correct answer is ${correctAnswer}.`);
+          showFeedback(false, `아쉽습니다. 정답은 ${correctAnswer}입니다.`);
         }
 
         setTimeout(() => {
@@ -490,41 +588,96 @@
         }, 1300);
       }
 
+      function renderReviewScreen() {
+        reviewList.innerHTML = '';
+
+        questions.forEach((question, index) => {
+          const selectedAnswer = selectedAnswers[index] ?? '답안 없음';
+          const isCorrect = selectedAnswer === question.answer;
+
+          const item = document.createElement('li');
+          item.className = 'review-item';
+
+          const questionLabel = document.createElement('strong');
+          questionLabel.textContent = `문제 ${index + 1}: ${question.question}`;
+
+          const selectedText = document.createElement('p');
+          selectedText.innerHTML = `선택한 답: <span>${selectedAnswer}</span>`;
+
+          const answerText = document.createElement('p');
+          answerText.innerHTML = `정답: <span>${question.answer}</span>`;
+
+          const statusText = document.createElement('p');
+          statusText.className = `review-status ${isCorrect ? 'correct' : 'incorrect'}`;
+          statusText.textContent = isCorrect ? '정답' : '오답';
+
+          item.appendChild(questionLabel);
+          item.appendChild(selectedText);
+          item.appendChild(answerText);
+          item.appendChild(statusText);
+          reviewList.appendChild(item);
+        });
+      }
+
+      function toggleReviewPanel() {
+        const isHidden = reviewPanel.hasAttribute('hidden');
+
+        if (isHidden) {
+          renderReviewScreen();
+          reviewPanel.removeAttribute('hidden');
+          reviewToggleBtn.textContent = '답안 숨기기';
+          reviewToggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          reviewPanel.setAttribute('hidden', 'hidden');
+          reviewToggleBtn.textContent = '답안 다시 보기';
+          reviewToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+
       function showResults() {
         quizPanel.setAttribute('hidden', 'hidden');
         resultPanel.classList.add('show');
+        reviewPanel.setAttribute('hidden', 'hidden');
+        reviewToggleBtn.textContent = '답안 다시 보기';
+        reviewToggleBtn.setAttribute('aria-expanded', 'false');
 
         const percentage = Math.round((score / questions.length) * 100);
         finalScore.textContent = `${score}`;
 
         if (percentage >= 80) {
-          resultTitle.textContent = 'Cosmic Genius!';
+          resultTitle.textContent = '우주 천재!';
           resultEmoji.textContent = '🌌';
-          resultMessage.textContent = 'You are a true space explorer. The universe is your playground!';
+          resultMessage.textContent = '당신은 진짜 우주 탐험가입니다. 별의 세계를 완벽히 정복했어요!';
         } else if (percentage >= 50) {
-          resultTitle.textContent = 'Great Orbit!';
+          resultTitle.textContent = '좋은 궤도!';
           resultEmoji.textContent = '🚀';
-          resultMessage.textContent = 'Solid stargazing skills. A few more missions and you will be an expert.';
+          resultMessage.textContent = '기본 지식은 탄탄해요. 몇 번 더 비행하면 전문가가 될 거예요.';
         } else if (percentage >= 30) {
-          resultTitle.textContent = 'Nice Try!';
+          resultTitle.textContent = '좋은 시도!';
           resultEmoji.textContent = '🪐';
-          resultMessage.textContent = 'You are on your way to becoming a space adventurer.';
+          resultMessage.textContent = '우주 여행의 첫걸음을 잘 내딛고 있습니다. 계속 도전해 보세요.';
         } else {
-          resultTitle.textContent = 'Mission Prep';
+          resultTitle.textContent = '훈련 모드';
           resultEmoji.textContent = '🌠';
-          resultMessage.textContent = 'Even astronauts start with one small step. Try again and explore more!';
+          resultMessage.textContent = '모든 우주 비행사가 처음엔 작은 발걸음부터 시작합니다. 다시 도전해 보세요!';
         }
       }
 
       function resetQuiz() {
         currentQuestionIndex = 0;
         score = 0;
+        selectedAnswers = Array(questions.length).fill(null);
         updateScore();
         resultPanel.classList.remove('show');
+        reviewPanel.setAttribute('hidden', 'hidden');
+        reviewToggleBtn.textContent = '답안 다시 보기';
+        reviewToggleBtn.setAttribute('aria-expanded', 'false');
+        reviewList.innerHTML = '';
         quizPanel.removeAttribute('hidden');
         loadQuestion();
       }
 
+      reviewToggleBtn.addEventListener('click', toggleReviewPanel);
       restartBtn.addEventListener('click', resetQuiz);
 
       updateScore();
