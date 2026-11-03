@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Explorer Quiz</title>
+    <style>
+      :root {
+        --bg-1: #050816;
+        --bg-2: #101a36;
+        --panel: rgba(13, 20, 42, 0.82);
+        --panel-strong: rgba(18, 29, 59, 0.96);
+        --primary: #7c9cff;
+        --primary-2: #7ee7ff;
+        --accent: #ffb84d;
+        --success: #3ddc97;
+        --danger: #ff6b7d;
+        --text: #edf4ff;
+        --muted: #b9c6e3;
+        --shadow: rgba(67, 130, 255, 0.45);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(124, 156, 255, 0.28), transparent 35%),
+          radial-gradient(circle at bottom right, rgba(126, 231, 255, 0.24), transparent 25%),
+          linear-gradient(135deg, var(--bg-1), var(--bg-2));
+        color: var(--text);
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .quiz-shell {
+        width: min(760px, 100%);
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(3, 6, 20, 0.65), 0 0 24px var(--shadow);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+
+      .topbar {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 20px 22px 16px;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(124, 156, 255, 0.14);
+        border: 1px solid rgba(124, 156, 255, 0.32);
+      }
+
+      .badge::before {
+        content: "★";
+        color: var(--accent);
+      }
+
+      .score {
+        font-weight: 700;
+        color: var(--primary-2);
+        font-size: 1rem;
+      }
+
+      .progress-track {
+        position: relative;
+        width: 100%;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary), var(--primary-2), var(--accent));
+        box-shadow: 0 0 18px rgba(126, 231, 255, 0.7);
+        transition: width 0.35s ease;
+      }
+
+      .content {
+        padding: 28px 22px 22px;
+      }
+
+      .quiz-panel {
+        display: block;
+      }
+
+      .quiz-panel[hidden] {
+        display: none;
+      }
+
+      .question-meta {
+        color: var(--muted);
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        margin: 0 0 22px;
+        font-size: clamp(1.9rem, 2vw + 1rem, 3rem);
+        line-height: 1.2;
+      }
+
+      .answers {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .option {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        padding: 16px 18px;
+        border-radius: 16px;
+        font-size: 1rem;
+        text-align: left;
+        cursor: pointer;
+        transform: translateY(0);
+        transition:
+          transform 0.15s ease,
+          border-color 0.25s ease,
+          background 0.3s ease,
+          box-shadow 0.3s ease,
+          color 0.3s ease,
+          filter 0.2s ease;
+      }
+
+      .option:hover {
+        transform: translateY(-1px);
+        border-color: rgba(126, 231, 255, 0.7);
+      }
+
+      .option:active {
+        transform: translateY(2px) scale(0.995);
+        filter: brightness(0.96);
+      }
+
+      .option:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(126, 231, 255, 0.9);
+        box-shadow: 0 0 0 4px rgba(126, 231, 255, 0.22), 0 0 18px rgba(126, 231, 255, 0.2);
+        outline: none;
+      }
+
+      .option.correct {
+        background: rgba(61, 220, 151, 0.16);
+        border-color: rgba(61, 220, 151, 0.8);
+        color: #dffef1;
+        box-shadow: inset 0 0 0 1px rgba(61, 220, 151, 0.3);
+        transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, color 0.35s ease, transform 0.2s ease;
+      }
+
+      .option.incorrect {
+        background: rgba(255, 107, 125, 0.12);
+        border-color: rgba(255, 107, 125, 0.8);
+        color: #ffe5eb;
+        box-shadow: inset 0 0 0 1px rgba(255, 107, 125, 0.2);
+        transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, color 0.35s ease, transform 0.2s ease;
+      }
+
+      .option:disabled {
+        cursor: default;
+        opacity: 1;
+      }
+
+      .feedback {
+        min-height: 34px;
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.05rem;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+
+      .feedback.show {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .feedback.correct {
+        color: var(--success);
+        text-shadow: 0 0 20px rgba(61, 220, 151, 0.7);
+      }
+
+      .feedback.incorrect {
+        color: var(--danger);
+        text-shadow: 0 0 20px rgba(255, 107, 125, 0.7);
+      }
+
+      .feedback.correct::before {
+        content: "✓ ";
+      }
+
+      .feedback.incorrect::before {
+        content: "✕ ";
+      }
+
+      .result-panel {
+        display: none;
+        text-align: center;
+        padding: 18px 12px 10px;
+      }
+
+      .result-panel.show {
+        display: block;
+      }
+
+      .result-emoji {
+        font-size: clamp(3rem, 5vw, 5rem);
+        margin-bottom: 12px;
+        animation: float 1.8s ease-in-out infinite;
+      }
+
+      .result-panel h2 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 3vw, 3rem);
+      }
+
+      .result-score {
+        font-size: 1.2rem;
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
+
+      .result-score strong {
+        color: var(--text);
+        font-size: 2rem;
+      }
+
+      .result-message {
+        margin: 0 auto 24px;
+        max-width: 34ch;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .restart-btn {
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: #04111d;
+        font-weight: 800;
+        font-size: 1rem;
+        padding: 14px 22px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 10px 28px rgba(124, 156, 255, 0.38);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .restart-btn:hover,
+      .restart-btn:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(124, 156, 255, 0.48);
+        outline: none;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+
+      @media (max-width: 540px) {
+        body {
+          padding: 14px;
+        }
+
+        .content {
+          padding: 22px 16px 18px;
+        }
+
+        h1 {
+          font-size: 1.7rem;
+        }
+
+        .option {
+          padding: 14px 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="quiz-shell" aria-live="polite">
+      <header class="topbar">
+        <div class="status-row">
+          <div class="badge">Mission Control</div>
+          <div class="score" id="scoreCounter" aria-live="polite">Score: 0</div>
+        </div>
+        <div class="progress-track" aria-label="Quiz progress">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="quiz-panel" id="quizPanel">
+          <div class="question-meta" id="questionMeta">Question 1 of 10</div>
+          <h1 id="questionText">Loading question...</h1>
+
+          <div class="answers" id="answers" role="list"></div>
+          <div id="feedback" class="feedback" aria-live="assertive"></div>
+        </div>
+
+        <div class="result-panel" id="resultPanel" aria-live="polite">
+          <div class="result-emoji" id="resultEmoji">🚀</div>
+          <h2 id="resultTitle">Mission Complete</h2>
+          <div class="result-score"><strong id="finalScore">0</strong> / 10</div>
+          <p class="result-message" id="resultMessage">You completed the space exploration quiz.</p>
+          <button class="restart-btn" id="restartBtn" type="button">Play Again</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const questions = [
+        {
+          question: 'Which planet is known as the Red Planet?',
+          options: ['Venus', 'Mars', 'Jupiter', 'Mercury'],
+          answer: 'Mars'
+        },
+        {
+          question: 'What is the name of Earth\'s natural satellite?',
+          options: ['Titan', 'Europa', 'Moon', 'Ganymede'],
+          answer: 'Moon'
+        },
+        {
+          question: 'Which spacecraft was the first to land on the Moon?',
+          options: ['Apollo 11', 'Voyager 1', 'Sputnik 1', 'Hubble'],
+          answer: 'Apollo 11'
+        },
+        {
+          question: 'What force keeps planets in orbit around the Sun?',
+          options: ['Magnetism', 'Gravity', 'Radiation', 'Friction'],
+          answer: 'Gravity'
+        },
+        {
+          question: 'Which planet has the most prominent rings?',
+          options: ['Saturn', 'Neptune', 'Mars', 'Earth'],
+          answer: 'Saturn'
+        },
+        {
+          question: 'What is the name of the galaxy that contains our Solar System?',
+          options: ['Andromeda', 'Whirlpool', 'Milky Way', 'Sombrero'],
+          answer: 'Milky Way'
+        },
+        {
+          question: 'Which planet is the hottest in our Solar System?',
+          options: ['Venus', 'Mercury', 'Mars', 'Jupiter'],
+          answer: 'Venus'
+        },
+        {
+          question: 'What do astronauts use to breathe in space?',
+          options: ['Oxygen tanks', 'Helium balloons', 'Water filters', 'Solar panels'],
+          answer: 'Oxygen tanks'
+        },
+        {
+          question: 'Which space telescope was launched in 1990 and changed astronomy?',
+          options: ['Spitzer', 'Hubble', 'Kepler', 'JWST'],
+          answer: 'Hubble'
+        },
+        {
+          question: 'What is the largest planet in our Solar System?',
+          options: ['Neptune', 'Saturn', 'Jupiter', 'Uranus'],
+          answer: 'Jupiter'
+        }
+      ];
+
+      const quizPanel = document.getElementById('quizPanel');
+      const resultPanel = document.getElementById('resultPanel');
+      const questionMeta = document.getElementById('questionMeta');
+      const questionText = document.getElementById('questionText');
+      const answersEl = document.getElementById('answers');
+      const feedbackEl = document.getElementById('feedback');
+      const scoreCounter = document.getElementById('scoreCounter');
+      const progressFill = document.getElementById('progressFill');
+      const finalScore = document.getElementById('finalScore');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultEmoji = document.getElementById('resultEmoji');
+      const resultMessage = document.getElementById('resultMessage');
+      const restartBtn = document.getElementById('restartBtn');
+
+      let currentQuestionIndex = 0;
+      let score = 0;
+
+      function updateProgress() {
+        const percent = ((currentQuestionIndex) / questions.length) * 100;
+        progressFill.style.width = `${percent}%`;
+      }
+
+      function updateScore() {
+        scoreCounter.textContent = `Score: ${score}`;
+      }
+
+      function showFeedback(isCorrect, message) {
+        feedbackEl.textContent = message;
+        feedbackEl.classList.remove('correct', 'incorrect', 'show');
+        if (isCorrect) {
+          feedbackEl.classList.add('correct');
+        } else {
+          feedbackEl.classList.add('incorrect');
+        }
+        feedbackEl.classList.add('show');
+      }
+
+      function loadQuestion() {
+        const currentQuestion = questions[currentQuestionIndex];
+        questionMeta.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        questionText.textContent = currentQuestion.question;
+        answersEl.innerHTML = '';
+        feedbackEl.classList.remove('show', 'correct', 'incorrect');
+        feedbackEl.textContent = '';
+
+        currentQuestion.options.forEach((option) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'option';
+          button.textContent = option;
+          button.setAttribute('role', 'listitem');
+
+          button.addEventListener('click', () => handleAnswer(button, option, currentQuestion.answer));
+          answersEl.appendChild(button);
+        });
+
+        updateProgress();
+      }
+
+      function handleAnswer(button, selectedOption, correctAnswer) {
+        const allButtons = Array.from(document.querySelectorAll('.option'));
+        allButtons.forEach((btn) => {
+          btn.disabled = true;
+          if (btn.textContent === correctAnswer) {
+            btn.classList.add('correct');
+          }
+        });
+
+        const isCorrect = selectedOption === correctAnswer;
+
+        if (isCorrect) {
+          score += 1;
+          updateScore();
+          button.classList.add('correct');
+          showFeedback(true, 'Correct! Excellent work.');
+        } else {
+          button.classList.add('incorrect');
+          showFeedback(false, `Not quite. The correct answer is ${correctAnswer}.`);
+        }
+
+        setTimeout(() => {
+          currentQuestionIndex += 1;
+          if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+          } else {
+            showResults();
+          }
+        }, 1300);
+      }
+
+      function showResults() {
+        quizPanel.setAttribute('hidden', 'hidden');
+        resultPanel.classList.add('show');
+
+        const percentage = Math.round((score / questions.length) * 100);
+        finalScore.textContent = `${score}`;
+
+        if (percentage >= 80) {
+          resultTitle.textContent = 'Cosmic Genius!';
+          resultEmoji.textContent = '🌌';
+          resultMessage.textContent = 'You are a true space explorer. The universe is your playground!';
+        } else if (percentage >= 50) {
+          resultTitle.textContent = 'Great Orbit!';
+          resultEmoji.textContent = '🚀';
+          resultMessage.textContent = 'Solid stargazing skills. A few more missions and you will be an expert.';
+        } else if (percentage >= 30) {
+          resultTitle.textContent = 'Nice Try!';
+          resultEmoji.textContent = '🪐';
+          resultMessage.textContent = 'You are on your way to becoming a space adventurer.';
+        } else {
+          resultTitle.textContent = 'Mission Prep';
+          resultEmoji.textContent = '🌠';
+          resultMessage.textContent = 'Even astronauts start with one small step. Try again and explore more!';
+        }
+      }
+
+      function resetQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        updateScore();
+        resultPanel.classList.remove('show');
+        quizPanel.removeAttribute('hidden');
+        loadQuestion();
+      }
+
+      restartBtn.addEventListener('click', resetQuiz);
+
+      updateScore();
+      loadQuestion();
+    </script>
+  </body>
+</html>
